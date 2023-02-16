@@ -26,20 +26,20 @@ export default {
     // Options for the Bing client
     bingAiClient: {
         // The "_U" cookie value from bing.com
-        userToken: '',
+        userToken: process.env.BINGAI_API_USERTOKEN || '',
         // If the above doesn't work, provide all your cookies as a string instead
-        cookies: '',
+        cookies: process.env.BINGAI_API_COOKIES || '',
         // (Optional) Set to true to enable `console.debug()` logging
-        debug: false,
+        debug: true,
     },
     // Options for the API server
     apiOptions: {
         port: process.env.API_PORT || 3000,
         host: process.env.API_HOST || 'localhost',
         // (Optional) Set to true to enable `console.debug()` logging
-        debug: false,
+        debug: true,
         // (Optional) Set to "bing" to use `BingAIClient` instead of `ChatGPTClient`.
-        // clientToUse: 'bing',
+        clientToUse: 'bing',
     },
     // Options for the CLI app
     cliOptions: {
@@ -48,5 +48,5 @@ export default {
     },
     // If set, `ChatGPTClient` will use `keyv-file` to store conversations to this JSON file instead of in memory.
     // However, `cacheOptions.store` will override this if set
-    storageFilePath: process.env.STORAGE_FILE_PATH || './cache.json',
+    //storageFilePath: process.env.STORAGE_FILE_PATH || './cache.json',
 }

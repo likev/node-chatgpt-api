@@ -59,7 +59,15 @@ switch (clientToUse) {
         break;
 }
 
-const server = fastify();
+const server = fastify({ logger: true });
+
+//const fastify = require('fastify')({logger: true})
+//const path = require('path')
+import fastifyStatic from '@fastify/static';
+server.register(fastifyStatic, {
+    root: '/workspaces/chatgpt-web-ui/dist/',
+    //prefix: '/public/', // optional: default '/'
+})
 
 await server.register(FastifySSEPlugin);
 await server.register(cors, {
@@ -141,9 +149,10 @@ server.post('/conversation', async (request, reply) => {
 server.listen({
     port: settings.apiOptions?.port || settings.port || 3000,
     host: settings.apiOptions?.host || 'localhost'
-}, (error) => {
+}, (error, address) => {
     if (error) {
         console.error(error);
         process.exit(1);
     }
+    console.log(`Server is now listening on ${address}`);
 });

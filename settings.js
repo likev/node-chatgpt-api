@@ -35,7 +35,7 @@ export default {
     // Options for the API server
     apiOptions: {
         port: process.env.API_PORT || 3000,
-        host: process.env.API_HOST || 'localhost',
+        host: '127.0.0.1',//process.env.API_HOST || 'localhost'
         // (Optional) Set to true to enable `console.debug()` logging
         debug: true,
         // (Optional) Set to "bing" to use `BingAIClient` instead of `ChatGPTClient`.

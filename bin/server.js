@@ -185,7 +185,14 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
 
     let conversation = await conversationKV.get(conversationID);
     if (conversation === null) {
-        return reply.send({ id: '', data: '' });
+        return reply.send({
+            id: '',
+            event: 'error',
+            data: JSON.stringify({
+                code: 404,
+                error: "conversationID not Found!",
+            }),
+        });
     }
 
     const { tokens, done, result, error } = conversation.props;
@@ -194,10 +201,7 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
         return reply.send({
             id: '',
             event: 'error',
-            data: JSON.stringify({
-                code,
-                error: message,
-            }),
+            data: JSON.stringify(error),
         });
     }
 

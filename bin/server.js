@@ -8,6 +8,9 @@ import ChatGPTClient from '../src/ChatGPTClient.js';
 import BingAIClient from '../src/BingAIClient.js';
 import { KeyvFile } from 'keyv-file';
 
+import CyclicDb from "@cyclic.sh/dynamodb";
+const conversationKV = CyclicDb(process.env.CYCLIC_DB).collection("conversation");
+
 const arg = process.argv.find((arg) => arg.startsWith('--settings'));
 let path;
 if (arg) {
@@ -74,16 +77,32 @@ await server.register(cors, {
     origin: '*',
 });
 
-server.post('/conversation', async (request, reply) => {
+server.post('/conversation/:conversationID', async (request, reply) => {
     const body = request.body || {};
+    const { conversationID } = request.params;
 
     let onProgress;
     if (body.stream === true) {
-        onProgress = (token) => {
+        onProgress = async (token) => {
             if (settings.apiOptions?.debug) {
                 console.debug(token);
             }
-            reply.sse({ id: '', data: token });
+            //reply.sse({ id: '', data: token });
+            // create an item in collection with key "leo"
+            let conversation = await conversationKV.get(conversationID);
+            if (conversation === null) {
+                conversation = {
+                    tokens: [token],
+                    done: false,
+                    ttl: Math.floor(Date.now() / 1000) + 10 * 60//10 minutes
+                }
+            } else {
+                const { tokens } = conversation.props;
+                tokens.push(token);
+                conversation = { tokens }
+            }
+
+            await conversationKV.set(conversationID, conversation);
         };
     } else {
         onProgress = null;
@@ -119,8 +138,11 @@ server.post('/conversation', async (request, reply) => {
             console.debug(result);
         }
         if (body.stream === true) {
-            reply.sse({ event: 'result', id: '', data: JSON.stringify(result) });
-            reply.sse({ id: '', data: '[DONE]' });
+            //reply.sse({ event: 'result', id: '', data: JSON.stringify(result) });
+            //reply.sse({ id: '', data: '[DONE]' });
+
+            await conversationKV.set(conversationID, { result, done: true });
+
             await nextTick();
             return reply.raw.end();
         }
@@ -135,6 +157,7 @@ server.post('/conversation', async (request, reply) => {
     }
     const message = error?.data?.message || `There was an error communicating with ${clientToUse === 'bing' ? 'Bing' : 'ChatGPT'}.`;
     if (body.stream === true) {
+        /*
         reply.sse({
             id: '',
             event: 'error',
@@ -143,11 +166,52 @@ server.post('/conversation', async (request, reply) => {
                 error: message,
             }),
         });
+        */
+        await conversationKV.set(conversationID, {
+            error: {
+                code,
+                error: message,
+            }
+        });
+
         await nextTick();
         return reply.raw.end();
     }
     return reply.code(code).send({ error: message });
 });
+
+server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
+    const { conversationID, nextID = 0 } = request.params;
+
+    let conversation = await conversationKV.get(conversationID);
+    if (conversation === null) {
+        return reply.send({ id: '', data: '' });
+    }
+
+    const { tokens, done, result, error } = conversation.props;
+
+    if (error) {
+        return reply.send({
+            id: '',
+            event: 'error',
+            data: JSON.stringify({
+                code,
+                error: message,
+            }),
+        });
+    }
+
+    if (done) {
+        reply.send({ event: 'result', id: '', data: JSON.stringify(result) });
+        return reply.send({ id: '', data: '[DONE]' });
+    } else {
+        let data = '', end = tokens.length;
+        for (; nextID < end; nextID++) {
+            data += tokens[nextID];
+        }
+        return reply.send({ id: end, data });
+    }
+})
 
 server.listen({
     port: settings.apiOptions?.port || settings.port || 3000,

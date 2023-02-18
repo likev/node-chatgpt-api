@@ -206,8 +206,8 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
     }
 
     if (done) {
-        reply.send({ event: 'result', id: '', data: JSON.stringify(result) });
-        return reply.send({ id: '', data: '[DONE]' });
+        return reply.send({ event: 'result', id: '', data: JSON.stringify(result) });
+        //return reply.send({ id: '', data: '[DONE]' });
     } else {
         let data = '';
         const end = tokens.length;

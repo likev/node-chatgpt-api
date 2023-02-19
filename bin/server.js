@@ -96,7 +96,7 @@ server.post('/conversation/:conversationID', async (request, reply) => {
             });
         }
 
-        let conversationStart = true, conversationCount = 0;
+        let conversationStart = true, conversationKVStart = false, conversationCount = 0;
         onProgress = async (token) => {
             if (settings.apiOptions?.debug) {
                 console.debug(token);
@@ -118,7 +118,8 @@ server.post('/conversation/:conversationID', async (request, reply) => {
 
                 conversationStart = false;
             } else {
-                conversation = await waitConversationKV(100); //wait for create
+                if(!conversationKVStart) conversation = await waitConversationKV(100); //wait for create every 100ms
+                else conversation = await conversationKV.get(conversationID);
 
                 const { tokens } = conversation.props;
                 tokens.push({ index, token });
@@ -126,6 +127,7 @@ server.post('/conversation/:conversationID', async (request, reply) => {
             }
 
             await conversationKV.set(conversationID, conversation);
+            conversationKVStart = true;
         };
     } else {
         onProgress = null;

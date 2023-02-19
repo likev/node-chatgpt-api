@@ -81,25 +81,45 @@ server.post('/conversation/:conversationID', async (request, reply) => {
     const body = request.body || {};
     const { conversationID } = request.params;
 
-    let onProgress;
+    let onProgress, conversationStart = true;
     if (body.stream === true) {
+        function waitConversationKV(ms) {
+            return new Promise((resolve) => {
+                let check;
+                check = setInterval(_=>{
+                    let conversation = await conversationKV.get(conversationID);
+                    if(conversation){
+                        resolve(conversation);
+                        clearInterval(check);
+                    }
+                }, ms);
+            });
+        }
+
         onProgress = async (token) => {
             if (settings.apiOptions?.debug) {
                 console.debug(token);
             }
             //reply.sse({ id: '', data: token });
             // create an item in collection with key "leo"
-            let conversation = await conversationKV.get(conversationID);
-            if (conversation === null) {
+            let conversation;
+            if (conversationStart) {
+                //create new conversation
                 conversation = {
                     tokens: [token],
                     done: false,
+                    error: false,
+                    result: false,
                     ttl: Math.floor(Date.now() / 1000) + 10 * 60//10 minutes
                 }
+
+                conversationStart = false;
             } else {
+                conversation = await waitConversationKV(100); //wait for create
+
                 const { tokens } = conversation.props;
                 tokens.push(token);
-                conversation = { tokens }
+                conversation = { tokens }; //only update tokens
             }
 
             await conversationKV.set(conversationID, conversation);

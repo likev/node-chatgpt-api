@@ -218,7 +218,7 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
         });
     }
 
-    const { tokens, done, result, error } = conversation.props;
+    let { tokens, done, result, error } = conversation.props;
 
     if (error) {
         return reply.send({

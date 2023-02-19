@@ -30,14 +30,14 @@ export default {
         // If the above doesn't work, provide all your cookies as a string instead
         cookies: process.env.BINGAI_API_COOKIES || '',
         // (Optional) Set to true to enable `console.debug()` logging
-        debug: true,
+        debug: false,
     },
     // Options for the API server
     apiOptions: {
         port: process.env.API_PORT || 3000,
         host: '127.0.0.1',//process.env.API_HOST || 'localhost'
         // (Optional) Set to true to enable `console.debug()` logging
-        debug: true,
+        debug: false,
         // (Optional) Set to "bing" to use `BingAIClient` instead of `ChatGPTClient`.
         clientToUse: 'bing',
     },

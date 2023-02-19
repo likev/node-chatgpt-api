@@ -1,7 +1,7 @@
 {
-  "name": "@waylaidwanderer/chatgpt-api",
-  "version": "1.17.6",
-  "description": "A ChatGPT implementation using the official ChatGPT model via OpenAI's API.",
+  "name": "bingai-polling-server",
+  "version": "2.0.1",
+  "description": "Bing AI polling server",
   "main": "index.js",
   "bin": {
     "chatgpt-api": "bin/server.js",
@@ -13,12 +13,12 @@
     "server": "node bin/server.js",
     "cli": "node bin/cli.js"
   },
-  "author": "waylaidwanderer",
+  "author": "likev",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waylaidwanderer/node-chatgpt-api.git"
+    "url": "git+https://github.com/likev/node-chatgpt-api.git"
   },
   "keywords": [
     "api",

@@ -81,14 +81,14 @@ server.post('/conversation/:conversationID', async (request, reply) => {
     const body = request.body || {};
     const { conversationID } = request.params;
 
-    let onProgress, conversationStart = true;
+    let onProgress;
     if (body.stream === true) {
         function waitConversationKV(ms) {
             return new Promise((resolve) => {
                 let check;
-                check = setInterval(_=>{
+                check = setInterval(async () => {
                     let conversation = await conversationKV.get(conversationID);
-                    if(conversation){
+                    if (conversation) {
                         resolve(conversation);
                         clearInterval(check);
                     }
@@ -96,17 +96,20 @@ server.post('/conversation/:conversationID', async (request, reply) => {
             });
         }
 
+        let conversationStart = true, conversationCount = 0;
         onProgress = async (token) => {
             if (settings.apiOptions?.debug) {
                 console.debug(token);
             }
             //reply.sse({ id: '', data: token });
-            // create an item in collection with key "leo"
+
+            conversationCount++;
+            const index = conversationCount;
             let conversation;
             if (conversationStart) {
                 //create new conversation
                 conversation = {
-                    tokens: [token],
+                    tokens: [{ index, token }],
                     done: false,
                     error: false,
                     result: false,
@@ -118,7 +121,7 @@ server.post('/conversation/:conversationID', async (request, reply) => {
                 conversation = await waitConversationKV(100); //wait for create
 
                 const { tokens } = conversation.props;
-                tokens.push(token);
+                tokens.push({ index, token });
                 conversation = { tokens }; //only update tokens
             }
 
@@ -231,8 +234,9 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
     } else {
         let data = '';
         const end = tokens.length;
+        tokens = tokens.sort((a, b) => a.index - b.index);
         for (let index = nextID; index < end; index++) {
-            data += tokens[index];
+            data += tokens[index].token;
         }
         return reply.send({ id: end, data });
     }

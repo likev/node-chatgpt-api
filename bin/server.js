@@ -83,33 +83,19 @@ server.post('/conversation/:conversationID', async (request, reply) => {
 
     let onProgress;
     if (body.stream === true) {
-        function waitConversationKV(ms) {
-            return new Promise((resolve) => {
-                let check;
-                check = setInterval(async () => {
-                    let conversation = await conversationKV.get(conversationID);
-                    if (conversation) {
-                        resolve(conversation);
-                        clearInterval(check);
-                    }
-                }, ms);
-            });
-        }
 
-        let conversationStart = true, conversationKVStart = false, conversationCount = 0;
+        let conversationStart = true;
+        const tokens = [];
         onProgress = async (token) => {
             if (settings.apiOptions?.debug) {
                 console.debug(token);
             }
             //reply.sse({ id: '', data: token });
 
-            conversationCount++;
-            const index = conversationCount;
             let conversation;
             if (conversationStart) {
                 //create new conversation
                 conversation = {
-                    tokens: [{ index, token }],
                     done: false,
                     error: false,
                     result: false,
@@ -118,16 +104,12 @@ server.post('/conversation/:conversationID', async (request, reply) => {
 
                 conversationStart = false;
             } else {
-                if(!conversationKVStart) conversation = await waitConversationKV(100); //wait for create every 100ms
-                else conversation = await conversationKV.get(conversationID);
-
-                const { tokens } = conversation.props;
-                tokens.push({ index, token });
-                conversation = { tokens }; //only update tokens
+                conversation = { }; //only update tokens
             }
+            tokens.push( token );
+            conversation.tokens = tokens;
 
             await conversationKV.set(conversationID, conversation);
-            conversationKVStart = true;
         };
     } else {
         onProgress = null;
@@ -236,9 +218,9 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
     } else {
         let data = '';
         const end = tokens.length;
-        tokens = tokens.sort((a, b) => a.index - b.index);
+        
         for (let index = nextID; index < end; index++) {
-            data += tokens[index].token;
+            data += tokens[index];
         }
         return reply.send({ id: end, data });
     }

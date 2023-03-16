@@ -104,9 +104,9 @@ server.post('/conversation/:conversationID', async (request, reply) => {
 
                 conversationStart = false;
             } else {
-                conversation = { }; //only update tokens
+                conversation = {}; //only update tokens
             }
-            tokens.push( token );
+            tokens.push(token);
             conversation.tokens = tokens;
 
             await conversationKV.set(conversationID, conversation);
@@ -156,13 +156,14 @@ server.post('/conversation/:conversationID', async (request, reply) => {
         return reply.send(result);
     }
 
-    const code = error?.data?.code || 503;
+    const code = error?.data?.code || (error.name === 'UnauthorizedRequest' ? 401 : 503);
+
     if (code === 503) {
         console.error(error);
     } else if (settings.apiOptions?.debug) {
         console.debug(error);
     }
-    const message = error?.data?.message || `There was an error communicating with ${clientToUse === 'bing' ? 'Bing' : 'ChatGPT'}.`;
+    const message = error?.data?.message || error?.message || `There was an error communicating with ${clientToUse === 'bing' ? 'Bing' : 'ChatGPT'}.`;
     if (body.stream === true) {
         /*
         reply.sse({
@@ -218,7 +219,7 @@ server.get('/conversation/:conversationID/:nextID', async (request, reply) => {
     } else {
         let data = '';
         const end = tokens.length;
-        
+
         for (let index = nextID; index < end; index++) {
             data += tokens[index];
         }

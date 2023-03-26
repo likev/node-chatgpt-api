@@ -68,6 +68,12 @@ export default class BingAIClient {
         
         try {
             const response = await fetch(`${this.options.host}/turing/conversation/create`, fetchOptions);
+            
+            const { ok, status, statusText, headers } = response;
+            const bodyText = await response.text();
+            
+            console.log({ ok, status, statusText, headers, bodyText });
+            
             return await response.json();
         }catch(e) {
             console.log(e)

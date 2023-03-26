@@ -70,7 +70,15 @@ export default class BingAIClient {
             const response = await fetch(`${this.options.host}/turing/conversation/create`, fetchOptions);
             
             const { ok, status, statusText, headers } = response;
-            const bodyText = await response.text();
+            if(status === 200 && headers.get('content-length') === 0) {
+                return {
+                    result:{
+                        value: 'blocked',
+                        message: 'your IP is blocked by BingAI'
+                    }
+                }
+            }
+            //const bodyText = await response.text();
             
             console.log({ ok, status, statusText, headers, bodyText });
             

@@ -70,7 +70,7 @@ export default class BingAIClient {
             const response = await fetch(`${this.options.host}/turing/conversation/create`, fetchOptions);
             
             const { ok, status, statusText, headers } = response;
-            if(status === 200 && headers.get('content-length') === 0) {
+            if(status === 200 && headers.get('content-length') === '0') {
                 return {
                     result:{
                         value: 'blocked',
@@ -80,7 +80,7 @@ export default class BingAIClient {
             }
             //const bodyText = await response.text();
             
-            console.log({ ok, status, statusText, headers, bodyText });
+            console.log({ ok, status, statusText, headers });
             
             return await response.json();
         }catch(e) {

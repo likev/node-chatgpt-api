@@ -65,8 +65,20 @@ export default class BingAIClient {
         if (this.options.proxy) {
             //fetchOptions.dispatcher = new ProxyAgent(this.options.proxy);
         }
-        const response = await fetch(`${this.options.host}/turing/conversation/create`, fetchOptions);
-        return response.json();
+        
+        try {
+            const response = await fetch(`${this.options.host}/turing/conversation/create`, fetchOptions);
+            return await response.json();
+        }catch(e) {
+            console.log(e)
+            return {
+                result:{
+                    value: e.name,
+                    message: e.message
+                }
+            }
+        }
+        
     }
 
     async createWebSocketConnection() {

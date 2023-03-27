@@ -43,13 +43,13 @@ export default class BingAIClient {
                 accept: 'application/json',
                 'accept-language': 'en-US,en;q=0.9',
                 'content-type': 'application/json',
-                'sec-ch-ua': '"Not_A Brand";v="99", "Microsoft Edge";v="109", "Chromium";v="109"',
+                'sec-ch-ua': '"Chromium";v="112", "Microsoft Edge";v="112", "Not:A-Brand";v="99"',
                 'sec-ch-ua-arch': '"x86"',
                 'sec-ch-ua-bitness': '"64"',
-                'sec-ch-ua-full-version': '"109.0.1518.78"',
-                'sec-ch-ua-full-version-list': '"Not_A Brand";v="99.0.0.0", "Microsoft Edge";v="109.0.1518.78", "Chromium";v="109.0.5414.120"',
+                'sec-ch-ua-full-version': '"112.0.1722.7"',
+                'sec-ch-ua-full-version-list': '"Chromium";v="112.0.5615.20", "Microsoft Edge";v="112.0.1722.7", "Not:A-Brand";v="99.0.0.0"',
                 'sec-ch-ua-mobile': '?0',
-                'sec-ch-ua-model': '',
+                'sec-ch-ua-model': '""',
                 'sec-ch-ua-platform': '"Windows"',
                 'sec-ch-ua-platform-version': '"15.0.0"',
                 'sec-fetch-dest': 'empty',
@@ -60,6 +60,8 @@ export default class BingAIClient {
                 cookie: this.options.cookies || `_U=${this.options.userToken}`,
                 Referer: 'https://www.bing.com/search?q=Bing+AI&showconv=1&FORM=hpcodx',
                 'Referrer-Policy': 'origin-when-cross-origin',
+                // Workaround for request being blocked due to geolocation
+                'x-forwarded-for': '1.1.1.1',
             },
         };
         if (this.options.proxy) {
